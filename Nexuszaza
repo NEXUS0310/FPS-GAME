@@ -9,12 +9,13 @@ local cam = workspace.CurrentCamera
 local rs = game:GetService("RunService")
 local players = game:GetService("Players")
 
+-- 🎨 กำหนดฟอนต์ FredokaOne
 local selectedFont = Enum.Font.FredokaOne
 
 -- 🛠️ ค่าเริ่มต้น (Settings)
 local aimbotEnabled = true
 local espEnabled = true
-local fovRadius = 50
+local fovRadius = 20
 
 local aimKeyType = "UserInputType"
 local aimKey = Enum.UserInputType.MouseButton2
@@ -36,7 +37,7 @@ fovCircle.Transparency = 0.7
 fovCircle.Visible = true
 fovCircle.Filled = false
 
--- 🖥️ UI
+-- 🖥️ สร้าง UI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AimbotMenuGui"
 screenGui.ResetOnSpawn = false
@@ -49,9 +50,10 @@ if not success then
     screenGui.Parent = plr:WaitForChild("PlayerGui")
 end
 
+-- Main Frame (ปรับความสูงลงเหลือ 200px ให้พอดีชิดปุ่มล่างสุด)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 240, 0, 215)
+mainFrame.Size = UDim2.new(0, 240, 0, 200)
 mainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 mainFrame.BorderSizePixel = 0
@@ -67,7 +69,7 @@ Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 8)
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 35)
 title.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
-title.Text = "  🎯   FPS GAME BY NEXUS"
+title.Text = "  🎯 FPS GAME BY NEXUS"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Font = selectedFont
@@ -106,7 +108,7 @@ listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Padding = UDim.new(0, 8)
 listLayout.Parent = container
 
--- 1. Aimbot Button
+-- 1. Aimbot Button (ขนาดเดิม 32px)
 local aimbotToggleBtn = Instance.new("TextButton")
 aimbotToggleBtn.Name = "1_AimbotToggle"
 aimbotToggleBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -119,7 +121,7 @@ aimbotToggleBtn.ZIndex = 3
 aimbotToggleBtn.Parent = container
 Instance.new("UICorner", aimbotToggleBtn).CornerRadius = UDim.new(0, 5)
 
--- 2. ESP Button
+-- 2. ESP Button (ขนาดเดิม 32px)
 local espToggleBtn = Instance.new("TextButton")
 espToggleBtn.Name = "2_ESPToggle"
 espToggleBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -132,7 +134,7 @@ espToggleBtn.ZIndex = 3
 espToggleBtn.Parent = container
 Instance.new("UICorner", espToggleBtn).CornerRadius = UDim.new(0, 5)
 
--- 3. FOV Box Frame
+-- 3. FOV Box Frame (ขนาดเดิม 32px)
 local fovFrame = Instance.new("Frame")
 fovFrame.Name = "3_FOVFrame"
 fovFrame.Size = UDim2.new(1, 0, 0, 32)
@@ -163,7 +165,7 @@ fovInput.ZIndex = 3
 fovInput.Parent = fovFrame
 Instance.new("UICorner", fovInput).CornerRadius = UDim.new(0, 5)
 
--- 4. Keybind Button
+-- 4. Keybind Button (ขนาดเดิม 32px)
 local keybindBtn = Instance.new("TextButton")
 keybindBtn.Name = "4_KeybindBtn"
 keybindBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -185,7 +187,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         minimizeBtn.Text = "+"
     else
         container.Visible = true
-        mainFrame.Size = UDim2.new(0, 240, 0, 215)
+        mainFrame.Size = UDim2.new(0, 240, 0, 200)
         minimizeBtn.Text = "-"
     end
 end)
