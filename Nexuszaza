@@ -1,0 +1,351 @@
+--[[
+    FPS GAME BY NEXUS
+    Toggle Menu Key: RightShift
+]]
+
+local uis = game:GetService("UserInputService")
+local plr = game.Players.LocalPlayer
+local cam = workspace.CurrentCamera
+local rs = game:GetService("RunService")
+local players = game:GetService("Players")
+
+local selectedFont = Enum.Font.FredokaOne
+
+-- 🛠️ ค่าเริ่มต้น (Settings)
+local aimbotEnabled = true
+local espEnabled = true
+local fovRadius = 50
+
+local aimKeyType = "UserInputType"
+local aimKey = Enum.UserInputType.MouseButton2
+local isKeybinding = false
+local aiming = false
+local isMinimized = false
+
+-- 🎨 สี ESP
+local enemyColor = Color3.fromRGB(255, 50, 50)
+local teamColor = Color3.fromRGB(50, 255, 50)
+
+-- 🟢 FOV Circle
+local fovCircle = Drawing.new("Circle")
+fovCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+fovCircle.Radius = fovRadius
+fovCircle.Color = Color3.fromRGB(255, 255, 0)
+fovCircle.Thickness = 1.5
+fovCircle.Transparency = 0.7
+fovCircle.Visible = true
+fovCircle.Filled = false
+
+-- 🖥️ UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AimbotMenuGui"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local success, _ = pcall(function()
+    screenGui.Parent = game:GetService("CoreGui")
+end)
+if not success then
+    screenGui.Parent = plr:WaitForChild("PlayerGui")
+end
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 240, 0, 215)
+mainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ClipsDescendants = true
+mainFrame.ZIndex = 1
+mainFrame.Parent = screenGui
+
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 8)
+
+-- Title Bar
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+title.Text = "  🎯   FPS GAME BY NEXUS"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = selectedFont
+title.TextSize = 14
+title.ZIndex = 2
+title.Parent = mainFrame
+
+Instance.new("UICorner", title).CornerRadius = UDim.new(0, 8)
+
+-- Minimize Button
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Name = "MinimizeButton"
+minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+minimizeBtn.Position = UDim2.new(1, -30, 0, 5)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
+minimizeBtn.Text = "-"
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.Font = selectedFont
+minimizeBtn.TextSize = 16
+minimizeBtn.ZIndex = 3
+minimizeBtn.Parent = title
+
+Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0, 4)
+
+-- Container
+local container = Instance.new("Frame")
+container.Name = "Container"
+container.Size = UDim2.new(1, -20, 1, -45)
+container.Position = UDim2.new(0, 10, 0, 40)
+container.BackgroundTransparency = 1
+container.ZIndex = 2
+container.Parent = mainFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 8)
+listLayout.Parent = container
+
+-- 1. Aimbot Button
+local aimbotToggleBtn = Instance.new("TextButton")
+aimbotToggleBtn.Name = "1_AimbotToggle"
+aimbotToggleBtn.Size = UDim2.new(1, 0, 0, 32)
+aimbotToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+aimbotToggleBtn.Text = "Aimbot: ON"
+aimbotToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+aimbotToggleBtn.Font = selectedFont
+aimbotToggleBtn.TextSize = 14
+aimbotToggleBtn.ZIndex = 3
+aimbotToggleBtn.Parent = container
+Instance.new("UICorner", aimbotToggleBtn).CornerRadius = UDim.new(0, 5)
+
+-- 2. ESP Button
+local espToggleBtn = Instance.new("TextButton")
+espToggleBtn.Name = "2_ESPToggle"
+espToggleBtn.Size = UDim2.new(1, 0, 0, 32)
+espToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+espToggleBtn.Text = "ESP: ON"
+espToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+espToggleBtn.Font = selectedFont
+espToggleBtn.TextSize = 14
+espToggleBtn.ZIndex = 3
+espToggleBtn.Parent = container
+Instance.new("UICorner", espToggleBtn).CornerRadius = UDim.new(0, 5)
+
+-- 3. FOV Box Frame
+local fovFrame = Instance.new("Frame")
+fovFrame.Name = "3_FOVFrame"
+fovFrame.Size = UDim2.new(1, 0, 0, 32)
+fovFrame.BackgroundTransparency = 1
+fovFrame.ZIndex = 3
+fovFrame.Parent = container
+
+local fovLabel = Instance.new("TextLabel")
+fovLabel.Size = UDim2.new(0.5, 0, 1, 0)
+fovLabel.BackgroundTransparency = 1
+fovLabel.Text = "FOV Size:"
+fovLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+fovLabel.TextXAlignment = Enum.TextXAlignment.Left
+fovLabel.Font = selectedFont
+fovLabel.TextSize = 13
+fovLabel.ZIndex = 3
+fovLabel.Parent = fovFrame
+
+local fovInput = Instance.new("TextBox")
+fovInput.Size = UDim2.new(0.5, 0, 1, 0)
+fovInput.Position = UDim2.new(0.5, 0, 0, 0)
+fovInput.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+fovInput.Text = tostring(fovRadius)
+fovInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+fovInput.Font = selectedFont
+fovInput.TextSize = 13
+fovInput.ZIndex = 3
+fovInput.Parent = fovFrame
+Instance.new("UICorner", fovInput).CornerRadius = UDim.new(0, 5)
+
+-- 4. Keybind Button
+local keybindBtn = Instance.new("TextButton")
+keybindBtn.Name = "4_KeybindBtn"
+keybindBtn.Size = UDim2.new(1, 0, 0, 32)
+keybindBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+keybindBtn.Text = "Lock Key: MouseButton2"
+keybindBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+keybindBtn.Font = selectedFont
+keybindBtn.TextSize = 13
+keybindBtn.ZIndex = 3
+keybindBtn.Parent = container
+Instance.new("UICorner", keybindBtn).CornerRadius = UDim.new(0, 5)
+
+-- 🔄 UI Logic
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        container.Visible = false
+        mainFrame.Size = UDim2.new(0, 240, 0, 35)
+        minimizeBtn.Text = "+"
+    else
+        container.Visible = true
+        mainFrame.Size = UDim2.new(0, 240, 0, 215)
+        minimizeBtn.Text = "-"
+    end
+end)
+
+aimbotToggleBtn.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    aimbotToggleBtn.Text = "Aimbot: " .. (aimbotEnabled and "ON" or "OFF")
+    aimbotToggleBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(40, 160, 80) or Color3.fromRGB(160, 50, 50)
+    fovCircle.Visible = aimbotEnabled
+end)
+
+espToggleBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espToggleBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+    espToggleBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(40, 160, 80) or Color3.fromRGB(160, 50, 50)
+    
+    for _, v in pairs(players:GetPlayers()) do
+        if v ~= plr and v.Character then
+            local highlight = v.Character:FindFirstChild("ESPHighlight")
+            if highlight then
+                highlight.Enabled = espEnabled
+            end
+        end
+    end
+end)
+
+fovInput.FocusLost:Connect(function()
+    local num = tonumber(fovInput.Text)
+    if num and num > 0 then
+        fovRadius = num
+        fovCircle.Radius = fovRadius
+    else
+        fovInput.Text = tostring(fovRadius)
+    end
+end)
+
+keybindBtn.MouseButton1Click:Connect(function()
+    isKeybinding = true
+    keybindBtn.Text = "Press any key..."
+    keybindBtn.BackgroundColor3 = Color3.fromRGB(200, 140, 30)
+end)
+
+-- 🧠 Functions
+local function isEnemy(vPlayer)
+    if vPlayer.Team ~= nil and plr.Team ~= nil then
+        return vPlayer.Team ~= plr.Team
+    end
+    return true
+end
+
+local function getClosest()
+    local closest = nil
+    local shortest = math.huge
+    
+    for _, v in pairs(players:GetPlayers()) do
+        if v ~= plr and isEnemy(v) and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            local head = v.Character:FindFirstChild("Head")
+            if head then
+                local screenPos, onScreen = cam:WorldToViewportPoint(head.Position)
+                if onScreen then
+                    local distFromCenter = (Vector2.new(screenPos.X, screenPos.Y) - fovCircle.Position).Magnitude
+                    local myHead = plr.Character and plr.Character:FindFirstChild("Head")
+                    local dist3D = myHead and (head.Position - myHead.Position).Magnitude or math.huge
+                    
+                    if distFromCenter <= fovRadius and dist3D < shortest then
+                        shortest = dist3D
+                        closest = head
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+local function applyESP(vPlayer)
+    if vPlayer == plr then return end
+    
+    local function setupCharacter(char)
+        if not char then return end
+        
+        local oldHighlight = char:FindFirstChild("ESPHighlight")
+        if oldHighlight then oldHighlight:Destroy() end
+        
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESPHighlight"
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlight.Enabled = espEnabled
+        
+        if isEnemy(vPlayer) then
+            highlight.FillColor = enemyColor
+            highlight.OutlineColor = enemyColor
+        else
+            highlight.FillColor = teamColor
+            highlight.OutlineColor = teamColor
+        end
+        
+        highlight.Parent = char
+    end
+
+    if vPlayer.Character then setupCharacter(vPlayer.Character) end
+    vPlayer.CharacterAdded:Connect(setupCharacter)
+    vPlayer:GetPropertyChangedSignal("Team"):Connect(function()
+        if vPlayer.Character then setupCharacter(vPlayer.Character) end
+    end)
+end
+
+for _, v in pairs(players:GetPlayers()) do applyESP(v) end
+players.PlayerAdded:Connect(applyESP)
+
+-- ⌨️ Inputs
+uis.InputBegan:Connect(function(input, gpe)
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        mainFrame.Visible = not mainFrame.Visible
+        return
+    end
+
+    if isKeybinding then
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode ~= Enum.KeyCode.Unknown then
+            aimKey = input.KeyCode
+            aimKeyType = "KeyCode"
+            keybindBtn.Text = "Lock Key: " .. tostring(input.KeyCode.Name)
+            isKeybinding = false
+            keybindBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+        elseif input.UserInputType ~= Enum.UserInputType.Keyboard and input.UserInputType ~= Enum.UserInputType.Focus then
+            aimKey = input.UserInputType
+            aimKeyType = "UserInputType"
+            keybindBtn.Text = "Lock Key: " .. tostring(input.UserInputType.Name)
+            isKeybinding = false
+            keybindBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+        end
+        return
+    end
+
+    if gpe then return end
+
+    if aimKeyType == "UserInputType" and input.UserInputType == aimKey then
+        aiming = true
+    elseif aimKeyType == "KeyCode" and input.KeyCode == aimKey then
+        aiming = true
+    end
+end)
+
+uis.InputEnded:Connect(function(input)
+    if aimKeyType == "UserInputType" and input.UserInputType == aimKey then
+        aiming = false
+    elseif aimKeyType == "KeyCode" and input.KeyCode == aimKey then
+        aiming = false
+    end
+end)
+
+rs.RenderStepped:Connect(function()
+    fovCircle.Position = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+
+    if aiming and aimbotEnabled then
+        local target = getClosest()
+        if target then
+            cam.CFrame = CFrame.new(cam.CFrame.Position, target.Position)
+        end
+    end
+end)
